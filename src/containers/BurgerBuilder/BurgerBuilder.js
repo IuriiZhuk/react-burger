@@ -3,6 +3,8 @@ import React, { Component } from 'react';
 import Auxiliary from '../../hoc/Auxiliary';
 import Burger from '../../components/Burger/Burger';
 import BuildControls from '../../components/Burger/BuildControls/BuildControls';
+import Modal from '../../components/UI/Modal/Modal';
+import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 
 const INGREDIENT_PRICES = {
   salad: 0.5,
@@ -20,7 +22,18 @@ class BurgerBuilder extends Component {
       meat: 0,
     },
     totalPrice: 5,
+    purchasable: false,
+    purchasing: false,
   };
+
+  updatePurchaseState(ingredients) {
+    const sum = Object.keys(ingredients)
+      .map(igKey => {
+        return ingredients[igKey];
+      })
+      .reduce((sum, el) => sum + el, 0);
+    this.setState({ purchasable: sum > 0 });
+  }
 
   addIngredientHadler = type => {
     const oldCount = this.state.ingredients[type];
@@ -38,6 +51,7 @@ class BurgerBuilder extends Component {
       ingredients: updatedIngredients,
       totalPrice: newPrice,
     });
+    this.updatePurchaseState(updatedIngredients);
   };
 
   removeIngredientHadler = type => {
@@ -59,15 +73,32 @@ class BurgerBuilder extends Component {
       ingredients: updatedIngredients,
       totalPrice: newPrice,
     });
+    this.updatePurchaseState(updatedIngredients);
+  };
+  purchaseHandler = () => {
+    this.setState({ purchasing: true });
   };
 
   render() {
+    const disableinfo = {
+      ...this.state.ingredients,
+    };
+    for (let key in disableinfo) {
+      disableinfo[key] = disableinfo[key] <= 0;
+    }
     return (
       <Auxiliary>
+        <Modal show={this.state.purchasing}>
+          <OrderSummary ingredients={this.state.ingredients} />
+        </Modal>
         <Burger ingredients={this.state.ingredients} />
         <BuildControls
           ingredientAdded={this.addIngredientHadler}
           ingredientRemove={this.removeIngredientHadler}
+          disabled={disableinfo}
+          price={this.state.totalPrice}
+          purchasable={this.state.purchasable}
+          purchasing={this.purchaseHandler}
         />
       </Auxiliary>
     );
