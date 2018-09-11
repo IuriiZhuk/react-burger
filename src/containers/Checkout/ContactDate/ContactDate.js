@@ -15,6 +15,11 @@ class ContactDate extends Component {
           placeholder: 'Your Name',
         },
         value: '',
+        validation: {
+          required: true,
+        },
+        valid: false,
+        touched: false,
       },
 
       street: {
@@ -24,6 +29,11 @@ class ContactDate extends Component {
           placeholder: 'Street',
         },
         value: '',
+        validation: {
+          required: true,
+        },
+        valid: false,
+        touched: false,
       },
       zip: {
         elementType: 'input',
@@ -32,6 +42,13 @@ class ContactDate extends Component {
           placeholder: 'Zip',
         },
         value: '',
+        validation: {
+          required: true,
+          minLength: 5,
+          maxLength: 5,
+        },
+        valid: false,
+        touched: false,
       },
       country: {
         elementType: 'input',
@@ -40,6 +57,11 @@ class ContactDate extends Component {
           placeholder: 'Your country',
         },
         value: '',
+        validation: {
+          required: true,
+        },
+        valid: false,
+        touched: false,
       },
       email: {
         elementType: 'input',
@@ -48,6 +70,11 @@ class ContactDate extends Component {
           placeholder: 'Your Email',
         },
         value: '',
+        validation: {
+          required: true,
+        },
+        valid: false,
+        touched: false,
       },
       deliveryMethod: {
         elementType: 'select',
@@ -58,25 +85,50 @@ class ContactDate extends Component {
           ],
         },
         value: '',
+        validation: {},
+        valid: true,
+        touched: false,
       },
     },
     loading: false,
+    formIsValid: false,
+  };
+
+  checkValidity = (value, rules) => {
+    let isValid = true;
+
+    if (rules.required) {
+      isValid = value.trim() !== '' && isValid;
+    }
+
+    if (rules.minLength) {
+      isValid = value.length >= rules.minLength && isValid;
+    }
+    if (rules.maxLength) {
+      isValid = value.length <= rules.maxLength && isValid;
+    }
+
+    return isValid;
   };
 
   orderHandler = event => {
-    console.log(`from orderHandler ContactDate`);
-
     event.preventDefault();
 
     this.setState({
       loading: true,
     });
+    const formData = {};
 
-    // alert(`You are continue!`);
+    for (let formElementIdentifier in this.state.orderForm) {
+      formData[formElementIdentifier] = this.state.orderForm[
+        formElementIdentifier
+      ].value;
+    }
 
     const order = {
       ingredients: this.props.ingredients,
       price: this.props.price,
+      orderData: formData,
     };
     axios
       .post('/orders.json', order)
@@ -92,6 +144,33 @@ class ContactDate extends Component {
         })
       );
   };
+  inputChangedHandler = (event, inputIdentifier) => {
+    const updatedOrderForm = {
+      ...this.state.orderForm,
+    };
+
+    const updatedOrderFormElement = {
+      ...updatedOrderForm[inputIdentifier],
+    };
+
+    updatedOrderFormElement.value = event.target.value;
+
+    updatedOrderFormElement.valid = this.checkValidity(
+      updatedOrderFormElement.value,
+      updatedOrderFormElement.validation
+    );
+    updatedOrderFormElement.touched = true;
+    updatedOrderForm[inputIdentifier] = updatedOrderFormElement;
+
+    let formIsValid = true;
+    for (let inputIdentifier in updatedOrderForm) {
+      formIsValid = updatedOrderForm[inputIdentifier].valid && formIsValid;
+    }
+    this.setState({
+      orderForm: updatedOrderForm,
+      formIsValid,
+    });
+  };
 
   render() {
     let formElementsArray = [];
@@ -103,16 +182,20 @@ class ContactDate extends Component {
     }
 
     let form = (
-      <form>
+      <form onSubmit={this.orderHandler}>
         {formElementsArray.map(formElement => (
           <Input
             key={formElement.id}
             elementType={formElement.config.elementType}
             elementConfig={formElement.config.elementConfig}
             value={formElement.config.value}
+            change={event => this.inputChangedHandler(event, formElement.id)}
+            invalid={!formElement.config.valid}
+            shouldValidate={formElement.config.validation}
+            touched={formElement.config.touched}
           />
         ))}
-        <Button btnType="Success" clicked={this.orderHandler}>
+        <Button btnType="Success" disabled={!this.props.formIsValid}>
           {' '}
           ORDER
         </Button>
