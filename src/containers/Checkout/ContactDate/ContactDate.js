@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux';
 import Button from '../../../components/UI/Button/Button';
 import Spinner from '../../../components/UI/Spinner/Spinner';
 import classes from './ContactDate.css';
@@ -126,7 +127,7 @@ class ContactDate extends Component {
     }
 
     const order = {
-      ingredients: this.props.ingredients,
+      ingredients: this.props.ings,
       price: this.props.price,
       orderData: formData,
     };
@@ -195,10 +196,11 @@ class ContactDate extends Component {
             touched={formElement.config.touched}
           />
         ))}
-        <Button btnType="Success" disabled={!this.props.formIsValid}>
+        <Button btnType="Success"> ORDER</Button>
+        {/* <Button btnType="Success" disabled={!this.props.formIsValid}>
           {' '}
           ORDER
-        </Button>
+        </Button> */}
       </form>
     );
 
@@ -213,4 +215,12 @@ class ContactDate extends Component {
     );
   }
 }
-export default ContactDate;
+
+const mapStateToProps = state => {
+  return {
+    ings: state.ingredients,
+    price: state.totalPrice,
+  };
+};
+
+export default connect(mapStateToProps)(ContactDate);
