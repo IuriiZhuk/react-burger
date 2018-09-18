@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import * as actionTypes from '../../store/actions';
+import * as burgerBuilderActions from '../../store/actions/index';
 
 import Auxiliary from '../../hoc/Auxiliary/Auxiliary';
 import Burger from '../../components/Burger/Burger';
@@ -14,16 +14,10 @@ import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
 class BurgerBuilder extends Component {
   state = {
     purchasing: false,
-    loading: false,
-    error: false,
   };
 
   componentDidMount() {
-    // axios
-    //   .get('https://react-study-burger.firebaseio.com/ingredients.json')
-    //   .then(response => {
-    //     this.setState({ ingredients: response.data });
-    //   });
+    this.props.onInitIngredients();
   }
 
   updatePurchaseState(ingredients) {
@@ -35,46 +29,6 @@ class BurgerBuilder extends Component {
     return sum > 0;
   }
 
-  // addIngredientHadler = type => {
-  //   const oldCount = this.state.ingredients[type];
-  //   const updatedCount = oldCount + 1;
-  //   const updatedIngredients = {
-  //     ...this.state.ingredients,
-  //   };
-  //   updatedIngredients[type] = updatedCount;
-
-  //   const priceAddition = INGREDIENT_PRICES[type];
-  //   const oldPrice = this.state.totalPrice;
-  //   const newPrice = oldPrice + priceAddition;
-
-  //   this.setState({
-  //     ingredients: updatedIngredients,
-  //     totalPrice: newPrice,
-  //   });
-  //   this.updatePurchaseState(updatedIngredients);
-  // };
-
-  // removeIngredientHadler = type => {
-  //   const oldCount = this.state.ingredients[type];
-  //   if (oldCount <= 0) {
-  //     return;
-  //   }
-  //   const updatedCount = oldCount - 1;
-  //   const updatedIngredients = {
-  //     ...this.state.ingredients,
-  //   };
-  //   updatedIngredients[type] = updatedCount;
-
-  //   const priceDeduction = INGREDIENT_PRICES[type];
-  //   const oldPrice = this.state.totalPrice;
-  //   const newPrice = oldPrice - priceDeduction;
-
-  //   this.setState({
-  //     ingredients: updatedIngredients,
-  //     totalPrice: newPrice,
-  //   });
-  //   this.updatePurchaseState(updatedIngredients);
-  // };
   purchaseHandler = () => {
     this.setState({ purchasing: true });
   };
@@ -119,11 +73,6 @@ class BurgerBuilder extends Component {
         />
       );
     }
-
-    if (this.state.loading) {
-      orderSummary = <Spinner />;
-    }
-
     return (
       <Auxiliary>
         <Modal
@@ -143,21 +92,17 @@ const mapStateToProps = state => {
   return {
     ings: state.ingredients,
     price: state.totalPrice,
+    error: state.error,
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
     onIngredientAdded: ingName =>
-      dispatch({
-        type: actionTypes.ADD_INGREDIENT,
-        ingredientName: ingName,
-      }),
+      dispatch(burgerBuilderActions.addIngredient(ingName)),
     onIngredientRemoved: ingName =>
-      dispatch({
-        type: actionTypes.REMOVE_INGREDIENT,
-        ingredientName: ingName,
-      }),
+      dispatch(burgerBuilderActions.removeIngredient(ingName)),
+    onInitIngredients: () => dispatch(burgerBuilderActions.initIngredients()),
   };
 };
 
